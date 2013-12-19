@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Backbone.ViewKit Test Suite</title>
+	<link rel="stylesheet" href="node_modules/mocha/mocha.css">
+	<script src="node_modules/mocha/mocha.js"></script>
+	<script src="node_modules/chai/chai.js"></script>
+	<script src="node_modules/sinon/pkg/sinon.js"></script>
+	
+	<script src="node_modules/jquery/jquery.js"></script>
+	<script src="node_modules/underscore/underscore.js"></script>
+	<script src="node_modules/backbone/backbone.js"></script>
+</head>
+<body>
+	<div id="mocha"></div>
+	<script>
+	expect = chai.expect;
+	mocha.setup('bdd');
+	</script>
+	<script src="backbone.viewkit.js"></script>
+	<script src="test-runner.js"></script>
+	<script>
+	if (typeof mochaPhantomJS !== 'undefined') {
+		mochaPhantomJS.run();
+	} else {
+		mocha.run();
+	}
+	</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "backbone.viewkit",
+  "description": "A compact view manager for high-performance layout.",
+  "homepage": "https://github.com/gmac/backbone.viewkit",
+  "url": "https://github.com/gmac/backbone.viewkit",
+  "keywords": [
+    "backbone",
+    "plugin",
+    "view",
+    "layout",
+    "manager"
+  ],
+  "author": {
+    "name": "Greg MacWilliam",
+    "email": "gmacwill77@gmail.com",
+    "web": "https://github.com/gmac"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gmac/backbone.viewkit.git"
+  },
+  "github": "https://github.com/gmac/backbone.viewkit",
+  "license": "MIT",
+  "dependencies": {
+    "jquery": ">=1.7.0",
+    "underscore": ">=1.5.2",
+    "backbone": ">=1.1.0"
+  },
+  "main": "backbone.viewkit.js",
+  "version": "0.0.0",
+  "devDependencies": {
+    "mocha": "~1.15.1",
+    "chai": "~1.8.1",
+    "sinon": "~1.7.3",
+    "grunt": "~0.4.2",
+    "grunt-contrib-uglify": "~0.2.7"
+  }
+}
