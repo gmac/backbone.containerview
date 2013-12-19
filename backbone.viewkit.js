@@ -1,12 +1,13 @@
 (function() {
   
-  var root = this;
-  var Backbone = root.Backbone;
-  var $ = root.jQuery || root.$;
-  var _ = root._;
+  var Backbone = this.Backbone;
+  var $ = this.jQuery || this.$;
+  var _ = this._;
   
-  function isView(view) {
-    return view instanceof Backbone.View;
+  function isViewLike(view) {
+    if (typeof view.render != 'function' || typeof view.remove != 'function') 
+      throw('Layout objects require "render" and "remove" methods');
+    return true;
   }
   
   function isCollection(collection) {
@@ -16,8 +17,7 @@
   function resolveViewSelector(view, selector) {
     if (!selector) return view.$el;
     if (selector instanceof $) return selector;
-    if (_.isString(selector)) return view.$(selector);
-    return $(selector);
+    return view.$(selector);
   }
   
   // Display Region
@@ -39,12 +39,10 @@
       this.close();
       this.state = state || null;
       
-      if (isView(view)) {
+      if (isViewLike(view)) {
         view.render();
         this.view = view;
         this.$el.append(view.$el);
-      } else {
-        this.$el.html(String(view));
       }
       return this;
     },
@@ -59,7 +57,12 @@
       }
       return this;
     },
-
+    
+    // Render: implemented strictly for duck-typing purposes.
+    render: function() {
+      return this;
+    },
+    
     // Removes the region layout by closing its content and dereferencing container:
     remove: function() {
       this.close();
@@ -86,11 +89,6 @@
       return true;
     },
     
-    // Default check to test if the view provider is loading:
-    isLoading: function() {
-      return this.models && _.isFunction(this.models.isLoading) && this.models.isLoading();
-    },
-    
     // Default sort function used while rendering the list:
     sort: null,
 
@@ -100,13 +98,6 @@
       
       var list = document.createDocumentFragment();
       
-      if (models) {
-        this.models = models = isCollection(models) ? models.models.slice() : models.slice();
-      }
-      
-      if (ViewClass) {
-        this.viewClass = isCollection(models) ? models.models.slice() : models.slice();
-      }
       
       // Default the filter function to the instance filter member:
       if (!_.isFunction(filter)) filter = this.filter;
@@ -190,10 +181,9 @@
     // all added layout is automatically removed along with the managing view instance.
     // @param item: a removable item (View or Region instance)
     addLayout: function(item) {
-      if (!_.isFunction(item.remove))
-        throw('Added layouts require a "remove" method');
-      
-      this._vk().push(item);
+      if (isViewLike(item)) {
+        this._vk().push(item);
+      }
       return item;
     },
 
