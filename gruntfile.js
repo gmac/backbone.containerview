@@ -13,9 +13,16 @@ module.exports = function( grunt ) {
 				src: '<%= pkg.name %>.js',
 				dest: '<%= pkg.name %>.min.js'
 			}
-		}
+		},
+		mocha_phantomjs: {
+      all: ['test-runner.html']
+    }
 	});
 	
 	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.registerTask("default", ["uglify"]);
+	grunt.loadNpmTasks('grunt-mocha-phantomjs');
+	
+	grunt.registerTask("default", ["mocha_phantomjs", "uglify"]);
+	grunt.registerTask("test", ["mocha_phantomjs"]);
+	grunt.registerTask("build", ["uglify"]);
 };

@@ -24,7 +24,7 @@
   // --------------
   // Manages the display of a single subview within a container.
   // Also manages an optional "state" value used to describe the region state.
-  function RegionLayout(selector) {
+  function RegionLayout(selector, options) {
     this.$el = $(selector).empty();
   };
 
@@ -52,14 +52,16 @@
     close: function() {
       if (this.view) {
         this.view.remove();
-        this.view = null;
-        this.state = null;
+        this.view = this.state = null;
       }
       return this;
     },
     
-    // Render: implemented strictly for duck-typing purposes.
+    // Rerenders the view:
     render: function() {
+      if (this.view) {
+        this.view.render();
+      }
       return this;
     },
     
@@ -74,7 +76,7 @@
   // Display List
   // ------------
   // Manages the display of a list of models and their views
-  function ListLayout(selector) {
+  function ListLayout(selector, options) {
     this.$el = $(selector).empty();
     this.views = [];
   };
@@ -91,13 +93,23 @@
     
     // Default sort function used while rendering the list:
     sort: null,
-
+    
+    open: function(View, collection, filter, sort) {
+      
+    },
+    
+    close: function() {
+      this.$el.empty();
+      _.invoke(this.views, 'remove');
+      this.views.length = 0;
+      return this;
+    },
+    
     // Renders a collection of views into the list:
-    render: function(models, ViewClass, filter, sort) {
-      this.empty();
+    render: function(collection, ViewClass, filter, sort) {
+      this.close();
       
       var list = document.createDocumentFragment();
-      
       
       // Default the filter function to the instance filter member:
       if (!_.isFunction(filter)) filter = this.filter;
@@ -124,15 +136,8 @@
       return this;
     },
 
-    empty: function() {
-      this.$el.empty();
-      _.invoke(this.views, 'remove');
-      this.views.length = 0;
-      return this;
-    },
-
     remove: function() {
-      this.empty();
+      this.close();
       this.$el =
         this.models =
         this.views =
@@ -141,6 +146,59 @@
     }
   };
   
+  // Finite State Renderer
+  // ---------------------
+  // Manages a collection of views, only showing one at a time based on current state.
+  function FiniteStateLayout(selector, options) {
+    this.$el = $(selector).empty();
+    this._s = {};
+    this.config(options);
+  }
+  
+  FiniteStateLayout.prototype = {
+    view: null,
+    state: null,
+    
+    config: function(options) {
+      
+    },
+    
+    addState: function(key, ViewClass) {
+      this._s[key] = ViewClass;
+      this.render();
+    },
+    
+    state: function(state) {
+      if (state !== undefined && state !== this.state && this._s[state]) {
+        this.state = state;
+        this.render();
+      }
+      return this.state;
+    },
+    
+    render: function() {
+      this.empty();
+      if (this._s[this.state]) {
+        this.view = new this._s[this.state]();
+        this.view.render();
+        this.$el.append(this.view.$el);
+      }
+    },
+    
+    empty: function() {
+      if (this.view) {
+        this.view.remove();
+        this.view = this.state = null;
+      }
+      return this;
+    },
+    
+    remove: function() {
+      this.empty();
+    }
+  };
+  
+  
   // ViewKit Backbone Extension
   // --------------------------
   var ViewKit = Backbone.ViewKit = Backbone.View.extend({
@@ -148,20 +206,6 @@
       return this.__vk || (this.__vk = []);
     },
     
-    // Defines a new layout Region for the provided selector:
-    // selector attempts to scope itself within the view instance.
-    createRegion: function(selector) {
-      var $container = resolveViewSelector(this, selector);
-      return this.addLayout(ViewKit.createRegion($container));
-    },
-
-    // Defines a new layout List for to the provided selector:
-    // selector attempts to scope itself within the view instance.
-    createList: function(selector) {
-      var $container = resolveViewSelector(this, selector);
-      return this.addLayout(ViewKit.createList($container));
-    },
-
     // Inserts a subview by replacing the targeted selector element:
     replaceSubview: function(view, selector) {
       this.addLayout(view).render();
@@ -213,17 +257,23 @@
     }
   });
   
-  // Static method for creating display regions:
-  // @param selector  A jQuery object, or globally-scoped selector.
-  ViewKit.createRegion = function(selector) {
-    return new RegionLayout(selector);
+  var layoutAPI = {
+    'createRegion': RegionLayout,
+    'createList': ListLayout
   };
   
-  // Static method for creating display lists:
-  // @param selector  A jQuery object, or globally-scoped selector.
-  ViewKit.createList = function(selector) {
-    return new ListLayout(selector);
-  };
+  _.each(layoutAPI, function(LayoutClass, methodName) {
+    // Add static method for creating a new layout element:
+    ViewKit[methodName] = function(selector) {
+      return new LayoutClass(selector);
+    };
+    
+    // Add instance method for creating a layout element within the instance:
+    ViewKit.prototype[methodName] = function(selector) {
+      var $container = resolveViewSelector(this, selector);
+      return this.addLayout(ViewKit[methodName]($container));
+    };
+  });
   
   // Mixin utility for applying ViewKit behavior to other view classes:
   // Application methods:

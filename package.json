@@ -22,9 +22,9 @@
   "github": "https://github.com/gmac/backbone.viewkit",
   "license": "MIT",
   "dependencies": {
-    "jquery": ">=1.7.0",
-    "underscore": ">=1.5.2",
-    "backbone": ">=1.1.0"
+    "jquery": "~2.1.0-beta3",
+    "backbone": "~1.1.0",
+    "underscore": "~1.5.2"
   },
   "main": "backbone.viewkit.js",
   "version": "0.0.0",
@@ -33,6 +33,7 @@
     "chai": "~1.8.1",
     "sinon": "~1.7.3",
     "grunt": "~0.4.2",
-    "grunt-contrib-uglify": "~0.2.7"
+    "grunt-contrib-uglify": "~0.2.7",
+    "grunt-mocha-phantomjs": "~0.3.2"
   }
 }
