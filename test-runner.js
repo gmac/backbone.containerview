@@ -132,7 +132,7 @@ describe('Backbone.ViewKit', function() {
     var superCall = sinon.spy(Backbone.View.prototype, 'remove');
     var emptyCall = view.removeLayout = sinon.spy();
     view.remove();
-    expect(superCall.calledBefore(emptyCall)).to.be.false;
+    expect(superCall.calledBefore(emptyCall)).to.be.true;
     superCall.restore();
   });
 });
