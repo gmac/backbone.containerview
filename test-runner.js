@@ -202,18 +202,13 @@ describe('ViewKit Region Renderer', function() {
     expect(view.remove.callCount).to.equal(1);
   });
   
-  it('Region.close: should release references to the previously held view', function() {
-    region.open(view);
-    region.close();
-    expect(region.view).to.be.null;
-  });
-  
   it('Region.remove: should call close and release element reference', function() {
     region.open(view);
     var close = sinon.spy(region, 'close');
     region.remove();
     expect(close.callCount).to.equal(1);
     expect(region.$el).to.be.null;
+		expect(region.view).to.be.null;
   });
 });
 
