@@ -170,8 +170,8 @@ describe('ViewKit Region Renderer', function() {
     expect(region.remove).to.be.a('function');
   });
   
-  it('Region.open: should close existing content before opening new content', function() {
-    var close = sinon.spy(region, 'close');
+  it('Region.open: should empty existing content before opening new content', function() {
+    var close = sinon.spy(region, 'empty');
     region.open(view);
     expect(close.callCount).to.equal(1);
   });
