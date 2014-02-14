@@ -1,9 +1,10 @@
-# Backbone.ViewKit
+# Backbone.ContainerView
 
 ![build status](https://api.travis-ci.org/gmac/backbone.viewkit.png)
-(Work in Progress)
 
-A compact view manager for high-performance layout. ViewKit provides basic functional view programming for memory management and optimized DOM manipulation. ViewKit doesn't care how you manage templates or render your views, it's only concerned with the following:
+ContainerView is a compact `Backbone.View` extention that provides basic memory management, high-performance rendering, and convenient layout controls without adding opinionated workflow or significant overhead.
+
+ContainerView doesn't care how you manage your templates or render your views, it's only concerned with the following:
 
 - Subviews are always registered with their parent view for automated cleanup.
 - Calling "remove()" on a parent view cascades down to all its subviews.
@@ -14,16 +15,28 @@ A compact view manager for high-performance layout. ViewKit provides basic funct
 To aid in managing views, ViewKit implements a few common display patterns, including:
 
 - Region renderer (Shows one subview at a time. Opening a new subview cleans up the old one.)
-- List renderer (Renders a list of subviews based on a collection of models)
-- Finite State renderer (Displays a finite set of views based on a state key)
 
-## Backbone.ViewKit
+## ContainerView (static)
 
-### ViewKit (static)
+**ContainerView.createRegion** `ContainerView.createRegion('.selector');`
 
-**ViewKit.createRegion** `ViewKit.createRegion('.selector');`
+Creates a `ContainerRegion` object. Container regions provide an easy `open`/`close` interface for showing only one view (or list of views) at a time. Opening a new view into a region will automatically close and cleanup all of the region's existing content.
 
-### ViewKit (instance)
+This static region method is useful for creating an application's root container view.
+
+	var container = ContainerView.createRegion('#app-container');
+	
+	// Opens a list of friend views into the container:
+	container.open(FriendsListView, this.friendsCollection);
+	
+	// Opens a new detail view into the container…
+	// existing container content will automatically get cleaned up.
+	container.open(new FriendDetailView());
+	
+
+## ContainerView (instance)
+
+`ContainerView` extends `Backbone.View`.
 
 **vk.replaceSubview** `vk.replaceSubview(view, '.selector');`
 
@@ -37,7 +50,10 @@ To aid in managing views, ViewKit implements a few common display patterns, incl
 
 **vk.remove** `vk.remove();`
 
-### ViewRegion
+## ContainerRegion
+
+A `ContainerRegion` object is returned by calls to `createRegion`. A container region 
+
 
 **region.open** `region.open(View, Models?);`  
 Opens a single view, or a view constructor with a collection of models.

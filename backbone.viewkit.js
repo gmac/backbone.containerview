@@ -1,10 +1,10 @@
 (function() {
-  
+
   var Backbone = this.Backbone;
   var $ = this.jQuery || this.$;
   var _ = this._;
-  
-  function isViewLike(view, error) {
+
+    function isViewLike(view, error) {
     if (_.isFunction(view.render) && _.isFunction(view.remove) && view.$el instanceof $) {
       return true;
     } else if (error) {
@@ -49,7 +49,7 @@
       var content;
 
       if (this.models && _.isFunction(this.view)) {
-        // Views list:
+        // LIST:
         if (this.sort && _.isFunction(this.sort)) {
           this.models.sort(this.sort);
         }
@@ -69,7 +69,7 @@
         }, this);
       }
       else if (isViewLike(this.view)) {
-        // Single view item:
+        // SINGLE VIEW:
         this.view.render();
         this.views.push(this.view);
         content = this.view.$el;
@@ -110,7 +110,7 @@
     // The region is still usable for presenting content after calling "close".
     close: function() {
       this.empty();
-      this.view = this.models = null
+      this.view = this.models = null;
       return this;
     },
 
@@ -192,5 +192,5 @@
   };
 
   return ViewKit;
-  
+
 }).call(this);
