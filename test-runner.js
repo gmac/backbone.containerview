@@ -1,214 +1,200 @@
-var ViewKit = Backbone.ViewKit;
+var ContainerView = Backbone.ContainerView;
 
-describe('Backbone.ViewKit', function() {
+describe('Backbone.ContainerView', function() {
   
   var view;
-  var child1;
-  var child2;
+  var luke;
+  var leia;
   
   beforeEach(function() {
-    view = new Backbone.ViewKit();
-    child1 = new Backbone.View();
-    child2 = new Backbone.View();
+    view = new ContainerView({el: '<div><div class="region"></div></div>'});
+    luke = new Backbone.View({el: '<div class="luke"></div>'});
+    leia = new Backbone.View({el: '<div class="leia"></div>'});
   });
   
-  it('should define a Backbone.ViewKit constructor function', function() {
-    expect(Backbone.ViewKit).to.exist;
-    expect(_.isFunction(Backbone.ViewKit)).to.be.true;
+  it('should define a Backbone.ContainerView constructor function', function() {
+    expect(Backbone.ContainerView).to.exist;
+    expect(_.isFunction(Backbone.ContainerView)).to.be.true;
   });
   
-  it('should extend Backbone.ViewKit instances from Backbone.View', function() {
+  it('should extend Backbone.ContainerView instances from Backbone.View', function() {
     expect(view).to.be.instanceof(Backbone.View);
   });
   
-  it('should provide an array singleton for caching view references', function() {
-    var cache = view._vk();
-    expect(cache).to.be.instanceof(Array);
-    expect(cache).to.equal(view._vk());
+  it('should define Backbone.View as its default "_super" reference', function() {
+    expect(view._super).to.equal(Backbone.View);
   });
   
-  it('addLayout: should throw an error when adding layout without a "remove" method', function() {
+  it('should provide an array singleton for caching subview references', function() {
+    var cache = view._sv();
+    expect(cache).to.be.instanceof(Array);
+    expect(cache).to.equal(view._sv());
+  });
+  
+  it('should provide a static "create" method for generating instances', function() {
+    var container = ContainerView.create('<span></span>');
+    expect(container).to.be.instanceof(ContainerView);
+    expect(container.el.tagName.toLowerCase()).to.equal('span');
+  });
+  
+  it('addSubview: should throw an error when adding a non-view object', function() {
     expect(function() {
-      view.addLayout({});
+      view.addSubview({});
     }).to.throw();
   });
   
-  it('addLayout: should add removable layout to the view cache', function() {
-    view.addLayout(child1);
-    expect(view._vk()).to.have.length(1);
-    expect(view._vk()[0]).to.equal(child1);
-  });
-  
-  it('addLayout: should return the newly added layout', function() {
-    var added = view.addLayout(child1);
-    expect(added).to.equal(child1);
-  });
-  
-  it('removeLayout: should remove a single subview instance', function() {
-    view.addLayout(child1);
-    view.addLayout(child2);
-    view.removeLayout(child1);
-    expect(view._vk()).to.have.length(1);
-    expect(view._vk()[0]).to.equal(child2);
-  });
-  
-  it('removeLayout: should call "remove" on a single removed instance', function() {
-    view.addLayout(child1).remove = sinon.spy();
-    view.removeLayout(child1);
-    expect(child1.remove.callCount).to.equal(1);
-  });
-  
-  it('removeLayout: should remove all subviews when called without an instance', function() {
-    view.addLayout(child1);
-    view.addLayout(child2);
-    view.removeLayout();
-    expect(view._vk()).to.have.length(0);
-  });
-  
-  it('removeLayout: should call "remove" on all removed instances', function() {
-    view.addLayout(child1).remove = sinon.spy();
-    view.addLayout(child2).remove = sinon.spy();
-    view.removeLayout();
-    expect(child1.remove.callCount).to.equal(1);
-    expect(child2.remove.callCount).to.equal(1);
-  });
-  
-  it('replaceSubview: should call "addLayout" while adding new views', function() {
-    var addLayout = sinon.spy(view, 'addLayout');
-    view.replaceSubview(child1, '#test');
-    expect(addLayout.calledWith(child1)).to.be.true;
-  });
-  
-  it('replaceSubview: should add new layout in place of the specified selector', function() {
-    // Add a placeholder to the view, then verify content length:
-    view.$el.append('<div id="test"></div>');
-    expect(view.$el.children().length).to.equal(1);
+  it('numSubviews: should specify the current number of managed subviews view', function() {
+    view.addSubview(luke);
+    expect(view.numSubviews()).to.equal(1);
     
-    view.replaceSubview(child1, '#test');
-
-    // Expect still only one child, and that it's the swapped-in view:
+    view.addSubview(leia);
+    expect(view.numSubviews()).to.equal(2);
+  });
+  
+  it('addSubview: should add and return a single view instance', function() {
+    var returned = view.addSubview(luke);
+    expect(view.numSubviews()).to.equal(1);
+    expect(view._sv()[0]).to.equal(luke);
+    expect(returned).to.equal(luke);
+  });
+  
+  it('addSubview: should add and return an array of view instances', function() {
+    var returned = view.addSubview([luke, leia]);
+    expect(view.numSubviews()).to.equal(2);
+    expect(view._sv()[0]).to.equal(luke);
+    expect(view._sv()[1]).to.equal(leia);
+    expect(returned).to.be.instanceof(Array);
+    expect(returned).to.have.length(2);
+  });
+  
+  it('addSubview: should add and return a list of view instance arguments', function() {
+    var returned = view.addSubview(luke, leia);
+    expect(view.numSubviews()).to.equal(2);
+    expect(view._sv()[0]).to.equal(luke);
+    expect(view._sv()[1]).to.equal(leia);
+    expect(returned).to.be.instanceof(Array);
+    expect(returned).to.have.length(2);
+  });
+  
+  it('releaseSubviews: should release a specific subview instance', function() {
+    view.addSubview(luke, leia);
+    view.releaseSubviews(leia);
+    expect(view.numSubviews()).to.equal(1);
+    expect(view._sv()[0]).to.equal(luke);
+  });
+  
+  it('releaseSubviews: should release and remove a specific subview instance', function() {
+    var removeLeia = sinon.spy(leia, 'remove');
+    view.addSubview(luke, leia);
+    view.releaseSubviews(leia, {remove: true});
+    expect(removeLeia.calledOnce).to.be.true;
+  });
+  
+  it('releaseSubviews: should release a selected subview instance', function() {
+    view.addSubview(luke, leia);
+    view.releaseSubviews('.luke');
+    expect(view.numSubviews()).to.equal(1);
+    expect(view._sv()[0]).to.equal(leia);
+  });
+  
+  it('releaseSubviews: should release and remove a selected subview instance', function() {
+    var removeLuke = sinon.spy(luke, 'remove');
+    view.addSubview(luke, leia);
+    view.releaseSubviews('.luke', {remove: true});
+    expect(removeLuke.calledOnce).to.be.true;
+  });
+  
+  it('releaseSubviews: should use "*" to release all subview instances', function() {
+    view.addSubview(luke, leia);
+    view.releaseSubviews('*');
+    expect(view.numSubviews()).to.equal(0);
+  });
+  
+  it('releaseSubviews: should use "*" to release and remove all subview instances', function() {
+    var removeLuke = sinon.spy(luke, 'remove');
+    var removeLeia = sinon.spy(leia, 'remove');
+    view.addSubview(luke, leia);
+    view.releaseSubviews('*', {remove: true});
+    expect(removeLuke.calledOnce).to.be.true;
+    expect(removeLeia.calledOnce).to.be.true;
+  });
+  
+  it('createContainer: should create a new managed container for a selected child element', function() {
+    var region = view.createContainer('.region');
+    expect(view.numSubviews()).to.equal(1);
+    expect(region).to.be.instanceof(ContainerView);
+  });
+  
+  it('append: should add a new managed subview into the view\'s root container element', function() {
+    view.append(luke);
+    expect(view.$el.children().length).to.equal(2);
+    expect(view.numSubviews()).to.equal(1);
+  });
+  
+  it('append: should add a new managed subview into a selected container element', function() {
+    view.append(luke, '.region');
     expect(view.$el.children().length).to.equal(1);
-    expect(child1.$el.is( view.$el.children()[0] )).to.be.true;
+    expect(view.$('.region').children().length).to.equal(1);
+    expect(view.numSubviews()).to.equal(1);
   });
   
-  it('replaceSubview: should return the added view element', function() {
-    var returned = view.replaceSubview(child1, '#test');
-    expect(returned).to.equal(child1);
-  });
-  
-  it('appendSubview: should call "addLayout" while appending a new view', function() {
-    var addLayout = sinon.spy(view, 'addLayout');
-    view.appendSubview(child1);
-    expect(addLayout.calledWith(child1)).to.be.true;
-  });
-  
-  it('appendSubview: should append new layout into the ViewKit container element', function() {
-    view.appendSubview(child1);
+  it('swapIn: should add a new managed subview in place of a selected container element', function() {
+    view.swapIn(luke, '.region');
     expect(view.$el.children().length).to.equal(1);
-    expect(child1.$el.is( view.$el.children()[0] )).to.be.true;
+    expect(view.$('.region').length).to.equal(0);
+    expect(view.$('.luke').length).to.equal(1);
+    expect(view.numSubviews()).to.equal(1);
   });
   
-  it('appendSubview: should return the added view element', function() {
-    var returned = view.appendSubview(child1);
-    expect(returned).to.equal(child1);
+  it('swapIn: should defer to "append" if no target selector is specified', function() {
+    view.swapIn(luke);
+    expect(view.$el.children().length).to.equal(2);
+    expect(view.$('.region').length).to.equal(1);
+    expect(view.$('.luke').length).to.equal(1);
+    expect(view.numSubviews()).to.equal(1);
   });
   
-  it('remove: should call a ViewKit instance\'s superclass "remove" implementation', function() {
-    var _super = sinon.spy(Backbone.View.prototype, 'remove');
-    view.remove();
-    expect(_super.callCount).to.equal(1);
-    expect(_super.calledOn(view)).to.be.true;
-    _super.restore();
+  it('empty: should empty the container element, and remove all subviews', function() {
+    luke.remove = sinon.spy();
+    leia.remove = sinon.spy();
+    
+    // Add subviews and validate configuration:
+    view.append(luke);
+    view.append(leia);
+    expect(view.$el.children().length).to.equal(3);
+    expect(view.numSubviews()).to.equal(2);
+    
+    // Empty the view, and validate cleanup:
+    view.empty();
+    expect(view.$el.children().length).to.equal(0);
+    expect(view.numSubviews()).to.equal(0);
+    expect(luke.remove.calledOnce).to.be.true;
+    expect(leia.remove.calledOnce).to.be.true;
   });
   
-  it('remove: should call a ViewKit instance\'s "removeLayout" method', function() {
-    view.removeLayout = sinon.spy();
-    view.remove();
-    expect(view.removeLayout.callCount).to.equal(1);
-    expect(view.removeLayout.calledOn(view)).to.be.true;
-  });
+  it('open: should be tested');
+  it('close: should be tested');
+  it('render: should be tested');
+  it('listFilter: should be tested');
+  it('listSort: should be tested');
   
-  it('remove: should call superclass "remove" before calling "removeLayout" (for performance)', function() {
+  it('remove: should call superclass "remove" and then "empty" (in that order for best performance)', function() {
     var superCall = sinon.spy(Backbone.View.prototype, 'remove');
-    var emptyCall = view.removeLayout = sinon.spy();
+    var emptyCall = sinon.spy(view, 'empty');
+    
     view.remove();
+    expect(superCall.calledOnce).to.be.true;
+    expect(emptyCall.calledOnce).to.be.true;
     expect(superCall.calledBefore(emptyCall)).to.be.true;
     superCall.restore();
   });
-});
-
-
-describe('ViewKit Region Renderer', function() {
   
-  var $el;
-  var region;
-  var view;
-  
-  beforeEach(function() {
-    $el = $('<div id="vktest"></div>').appendTo('body');
-    region = ViewKit.createRegion('#vktest');
-    view = new Backbone.View();
-  });
-  
-  afterEach(function() {
-    $el.remove();
-  });
-  
-  it('ViewKit.createRegion: should create a region renderer scoped to any document selector', function() {
-    expect(region.$el[0]).to.equal($el[0]);
-  });
-  
-  it('ViewKit.createRegion: should create a region renderer scoped to a provided jQuery object', function() {
-    region = ViewKit.createRegion(view.$el);
-    expect(region.$el[0]).to.equal(view.$el[0]);
-  });
-  
-  it('ViewKit.createRegion: should create a Region object with expected API', function() {
-    expect(region.$el).to.be.instanceof($);
-    expect(region.open).to.be.a('function');
-    expect(region.close).to.be.a('function');
-    expect(region.remove).to.be.a('function');
-  });
-  
-  it('Region.open: should empty existing content before opening new content', function() {
-    var close = sinon.spy(region, 'empty');
-    region.open(view);
-    expect(close.callCount).to.equal(1);
-  });
-  
-  it('Region.open: should throw an error when opening non-view-like objects', function() {
-    expect(function() {
-      region.open({});
-    }).to.throw();
-  });
-  
-  it('Region.open: should render a view-like object into the region', function() {
-    view.render = sinon.spy();
-    region.open(view);
-    expect(view.render.callCount).to.equal(1);
-    expect(region.$el.children().length).to.equal(1);
-    expect(view.$el.is( region.$el.children()[0] )).to.be.true;
-  });
-  
-  it('Region.open: should store a reference to the currently opened view', function() {
-    region.open(view);
-    expect(region.view).to.equal(view);
-  });
-  
-  it('Region.close: should call "remove" on any currently opened view', function() {
-    view.remove = sinon.spy();
-    region.open(view);
-    region.close();
-    expect(view.remove.callCount).to.equal(1);
-  });
-  
-  it('Region.remove: should call close and release element reference', function() {
-    region.open(view);
-    var close = sinon.spy(region, 'close');
-    region.remove();
-    expect(close.callCount).to.equal(1);
-    expect(region.$el).to.be.null;
-		expect(region.view).to.be.null;
+  it('remove: should call "remove" on all managed subviews', function() {
+    var remove = sinon.spy(Backbone.View.prototype, 'remove');
+    
+    view.addSubview(luke, leia);
+    view.remove();
+    expect(remove.callCount).to.equal(3);
+    remove.restore();
   });
 });
-

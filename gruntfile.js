@@ -4,7 +4,7 @@ module.exports = function( grunt ) {
 		pkg: grunt.file.readJSON('package.json'),
 		uglify: {
 			options: {
-				banner: '// Backbone.ViewKit <%= pkg.version %>\n// (c) 2014 Greg MacWilliam\n// Freely distributed under the MIT license\n',
+				banner: '// Backbone.ContainerView <%= pkg.version %>\n// (c) 2014 Greg MacWilliam\n// Freely distributed under the MIT license\n',
 				sourceMapRoot: './',
 				sourceMap: '<%= pkg.name %>.min.map',
 				sourceMapUrl: '<%= pkg.name %>.min.map'

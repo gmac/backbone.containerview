@@ -1,8 +1,8 @@
 {
-  "name": "backbone.viewkit",
+  "name": "backbone.container",
   "description": "A compact view manager for high-performance layout.",
-  "homepage": "https://github.com/gmac/backbone.viewkit",
-  "url": "https://github.com/gmac/backbone.viewkit",
+  "homepage": "https://github.com/gmac/backbone.containerview",
+  "url": "https://github.com/gmac/backbone.containerview",
   "keywords": [
     "backbone",
     "plugin",
@@ -17,9 +17,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gmac/backbone.viewkit.git"
+    "url": "https://github.com/gmac/backbone.containerview.git"
   },
-  "github": "https://github.com/gmac/backbone.viewkit",
+  "github": "https://github.com/gmac/backbone.containerview",
   "license": "MIT",
   "dependencies": {
     "jquery": "~2.1.0-beta3",
