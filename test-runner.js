@@ -5,11 +5,23 @@ describe('Backbone.ContainerView', function() {
   var view;
   var luke;
   var leia;
+  var models;
+  
+  var ItemView = Backbone.View.extend({
+    tagName: 'span',
+    attributes: function() {
+      return {'data-name': this.model.get('name')};
+    }
+  });
   
   beforeEach(function() {
     view = new ContainerView({el: '<div><div class="region"></div></div>'});
     luke = new Backbone.View({el: '<div class="luke"></div>'});
     leia = new Backbone.View({el: '<div class="leia"></div>'});
+    models = [
+      new Backbone.Model({name: 'luke'}),
+      new Backbone.Model({name: 'leia'})
+    ];
   });
   
   it('should define a Backbone.ContainerView constructor function', function() {
@@ -127,30 +139,30 @@ describe('Backbone.ContainerView', function() {
   
   it('append: should add a new managed subview into the view\'s root container element', function() {
     view.append(luke);
-    expect(view.$el.children().length).to.equal(2);
+    expect(view.$el.children()).to.have.length(2);
     expect(view.numSubviews()).to.equal(1);
   });
   
   it('append: should add a new managed subview into a selected container element', function() {
     view.append(luke, '.region');
-    expect(view.$el.children().length).to.equal(1);
-    expect(view.$('.region').children().length).to.equal(1);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.$('.region').children()).to.have.length(1);
     expect(view.numSubviews()).to.equal(1);
   });
   
   it('swapIn: should add a new managed subview in place of a selected container element', function() {
     view.swapIn(luke, '.region');
-    expect(view.$el.children().length).to.equal(1);
-    expect(view.$('.region').length).to.equal(0);
-    expect(view.$('.luke').length).to.equal(1);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.$('.region')).to.have.length(0);
+    expect(view.$('.luke')).to.have.length(1);
     expect(view.numSubviews()).to.equal(1);
   });
   
   it('swapIn: should defer to "append" if no target selector is specified', function() {
     view.swapIn(luke);
-    expect(view.$el.children().length).to.equal(2);
-    expect(view.$('.region').length).to.equal(1);
-    expect(view.$('.luke').length).to.equal(1);
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.$('.region')).to.have.length(1);
+    expect(view.$('.luke')).to.have.length(1);
     expect(view.numSubviews()).to.equal(1);
   });
   
@@ -161,18 +173,72 @@ describe('Backbone.ContainerView', function() {
     // Add subviews and validate configuration:
     view.append(luke);
     view.append(leia);
-    expect(view.$el.children().length).to.equal(3);
+    expect(view.$el.children()).to.have.length(3);
     expect(view.numSubviews()).to.equal(2);
     
     // Empty the view, and validate cleanup:
     view.empty();
-    expect(view.$el.children().length).to.equal(0);
+    expect(view.$el.children()).to.have.length(0);
     expect(view.numSubviews()).to.equal(0);
     expect(luke.remove.calledOnce).to.be.true;
     expect(leia.remove.calledOnce).to.be.true;
   });
   
-  it('open: should be tested');
+  it('open: should open a single subview into the container', function() {
+    view.open(luke);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.$('.luke')).to.have.length(1);
+    expect(view.numSubviews()).to.equal(1);
+  });
+  
+  it('open: should replace existing container contents with opened view', function() {
+    view.open(luke);
+    expect(view.numSubviews()).to.equal(1);
+    
+    view.open(leia);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.$('.leia')).to.have.length(1);
+    expect(view.numSubviews()).to.equal(1);
+  });
+  
+  it('open: should open a list of views, rendered from a view class and models array', function() {
+    view.open(ItemView, models);
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.$('[data-name="luke"]')).to.have.length(1);
+    expect(view.$('[data-name="leia"]')).to.have.length(1);
+    expect(view.numSubviews()).to.equal(2);
+  });
+  
+  it('open: opening a new list should remove/replace old content', function() {
+    var remove = sinon.spy(Backbone.View.prototype, 'remove');
+    
+    view.open(luke);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.numSubviews()).to.equal(1);
+    
+    view.open(ItemView, models);
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.numSubviews()).to.equal(2);
+    
+    expect(remove.callCount).to.equal(1);
+    remove.restore();
+  });
+  
+  it('open: opening new content should remove/replace an old list', function() {
+    var remove = sinon.spy(Backbone.View.prototype, 'remove');
+    
+    view.open(ItemView, models);
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.numSubviews()).to.equal(2);
+    
+    view.open(luke);
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.numSubviews()).to.equal(1);
+    
+    expect(remove.callCount).to.equal(2);
+    remove.restore();
+  });
+  
   it('close: should be tested');
   it('render: should be tested');
   it('listFilter: should be tested');
