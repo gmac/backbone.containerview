@@ -1,5 +1,4 @@
 // Backbone.ContainerView
-
 // (c) 2014 Greg MacWilliam
 // Freely distributed under the MIT license
 
@@ -17,6 +16,7 @@
 
   var $ = Backbone.$;
   var ALL = ALL;
+  var ViewPrototype = Backbone.View.prototype;
   
   function isView(view, error) {
     if (view instanceof Backbone.View) return true;
@@ -36,17 +36,13 @@
     contentView: null,
     contentModels: null,
     
-    models: null,
-    view: null,
-    
-    _super: Backbone.View,
-    
-    // Subviews array manager:
-    // This method will create a managed array if one does not yet exist.
+    // Subviews list accessor:
+    // Creates a managed subview array if one does not yet exist.
     // Subviews list should always be accessed through this method.
     _sv: function(subviews) {
       if (subviews && _.isArray(subviews)) this.__sv = subviews;
-      return this.__sv || (this.__sv = []);
+      if (!this.__sv) this.__sv = [];
+      return this.__sv;
     },
     
     // Adds a managed subview to the container:
@@ -119,69 +115,76 @@
     },
     
     // Filter method used while rendering model lists:
-    listFilter: function(model) {
+    contentFilter: function(model) {
       return true;
     },
     
     // Sort method used while rendering model lists:
-    listSort: null,
-
-    // Renders the current model/view content configuration:
+    contentSort: null,
+    
+    // Default render implementation calls render content:
+    // may be overridden...
     render: function() {
-      var views = [];
+      this.renderContent();
+    },
+    
+    // Renders the current model/view content configuration:
+    renderContent: function() {
+      var subviews = [];
+      var contentView = this.contentView;
+      var contentModels = this.contentModels;
       var content = document.createDocumentFragment();
       
-      // Render list with view constructor:
-      if (this.models && _.isFunction(this.view)) {
-        
-        var models = this.models.slice();
+      // Render view constructor with models list:
+      if (_.isFunction(contentView) && _.isArray(contentModels)) {
         
         // Sort models array when a sort method is defined:
-        if (_.isFunction(this.listSort)) {
-          models.sort(_.bind(this.listSort, this));
+        if (_.isFunction(this.contentSort)) {
+          contentModels = contentModels.slice();
+          contentModels.sort(_.bind(this.contentSort, this));
         }
 
         // Loop through collection and render all models that pass the filter:
-        _.each(models, function(model, index) {
-          if (this.listFilter(model, index)) {
-            var view = new this.view({model: model});
-            views.push(view);
+        _.each(contentModels, function(model, index) {
+          if (this.contentFilter(model, index)) {
+            var view = new contentView({model: model});
+            subviews.push(view);
             view.render();
             content.appendChild(view.el);
           }
         }, this);
       
       // Render single view:
-      } else if (isView(this.view)) {
-        this.view.render();
-        views.push(this.view);
-        content.appendChild(this.view.el);
+      } else if (isView(contentView)) {
+        contentView.render();
+        subviews.push(contentView);
+        content.appendChild(contentView.el);
       }
       
-      // Replace container content:
+      // Replace container content, then cleanup old views and cache new subviews:
       this.$el.html(content);
-      
-      // Cleanup all old views, and then cache newly rendered views:
       this.removeSubviews(ALL);
-      this._sv(views);
+      this._sv(subviews);
       return this;
     },
 
     // Opens a single view, or a view constructor with a collection of models:
     open: function(view, models) {
-      if (models instanceof Backbone.Collection) {
-        models = models.models;
-      }
-      this.models = _.isArray(models) ? models : null;
-      this.view = (_.isFunction(view) || isView(view, true)) ? view : null;
-      return this.render();
+      // Convert collection/model instances to an array:
+      if (models instanceof Backbone.Collection) models = models.models;
+      else if (models instanceof Backbone.Model) models = [models];
+      
+      this.contentModels = _.isArray(models) ? models : null;
+      this.contentView = (_.isFunction(view) || isView(view, true)) ? view : null;
+      return this.renderContent();
     },
     
     // Closes the region by emptying the display and releasing all content references:
     // The region is still usable for presenting content after calling "close".
     close: function() {
-      this.empty();
-      this.view = this.models = null;
+      this.$el.empty();
+      this.removeSubviews(ALL);
+      this.contentView = this.contentModels = null;
       return this;
     },
     
@@ -205,26 +208,27 @@
       return this;
     },
     
-    // Empties the container element and then removes all managed subviews:
-    empty: function() {
-      this.$el.empty();
-      this.removeSubviews(ALL);
-      return this;
-    },
-
     // Removes the view by emptying, releasing all content, and orphaning the container:
     // The region is no longer usable after being removed.
     remove: function() {
-      var result = this._super.prototype.remove.apply(this, arguments);
+      var result = ViewPrototype.remove.apply(this, arguments);
       this.close();
       return result;
     }
-  });
   
-  // Creates a new container view (convenience method):
-  ContainerView.create = function(selector) {
-    return new ContainerView({el: selector});
-  };
+  // STATIC API:
+  }, {
+    // Convenience method for creating a new container view:
+    create: function(selector) {
+      return new ContainerView({el: selector});
+    },
+    
+    // Installs ContainerView methods globally onto Backbone.View:
+    install: function(enable) {
+      Backbone.View.prototype = (enable !== false) ? 
+        _.extend({}, ViewPrototype, ContainerView.prototype) : ViewPrototype;
+    }
+  });
   
   return ContainerView;
 }));
