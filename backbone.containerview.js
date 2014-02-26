@@ -105,7 +105,7 @@
     },
 
     // Creates a new managed container view within the view:
-    createContainer: function (selector) {
+    createSubcontainer: function (selector) {
       var $container = resolveViewSelector(this, selector);
       if (!$container.is(this.$el)) {
         return this.addSubview(ContainerView.create($container));

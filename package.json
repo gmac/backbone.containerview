@@ -1,5 +1,5 @@
 {
-  "name": "backbone.container",
+  "name": "backbone.containerview",
   "description": "A compact view manager for high-performance layout.",
   "homepage": "https://github.com/gmac/backbone.containerview",
   "url": "https://github.com/gmac/backbone.containerview",

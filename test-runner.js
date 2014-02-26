@@ -131,8 +131,8 @@ describe('Backbone.ContainerView', function() {
     expect(removeLeia.calledOnce).to.be.true;
   });
   
-  it('createContainer: should create a new managed container for a selected child element', function() {
-    var region = view.createContainer('.region');
+  it('createSubcontainer: should create a new managed container for a selected child element', function() {
+    var region = view.createSubcontainer('.region');
     expect(view.numSubviews()).to.equal(1);
     expect(region).to.be.instanceof(ContainerView);
   });
