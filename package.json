@@ -1,6 +1,6 @@
 {
   "name": "backbone.containerview",
-  "description": "A compact view manager for high-performance layout.",
+  "description": "A fast and efficient subview manager and renderer.",
   "homepage": "https://github.com/gmac/backbone.containerview",
   "url": "https://github.com/gmac/backbone.containerview",
   "keywords": [
@@ -27,7 +27,7 @@
     "underscore": "~1.5.2"
   },
   "main": "backbone.viewkit.js",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "devDependencies": {
     "mocha": "~1.15.1",
     "chai": "~1.8.1",

@@ -2,7 +2,7 @@
 
 ![build status](https://api.travis-ci.org/gmac/backbone.containerview.png)
 
-ContainerView is a compact `Backbone.View` extention that provides basic memory management, high-performance rendering, and convenient layout controls to the native Backbone View.
+ContainerView is a lightweight `Backbone.View` extention/mixin that provides fast and efficient subview management and layout controls. Its design focuses on memory management, rendering optimizations, and convenience workflows.
 
 ## Help & Documentation
 

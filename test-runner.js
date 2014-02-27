@@ -239,10 +239,104 @@ describe('Backbone.ContainerView', function() {
     remove.restore();
   });
   
-  it('close: should be tested');
-  it('render: should be tested');
-  it('listFilter: should be tested');
-  it('listSort: should be tested');
+  it('open: should store opened content references on the view', function() {
+    view.open(ItemView, models);
+    expect(view.contentView).to.equal(ItemView);
+    expect(view.contentModels).to.equal(models);
+  });
+  
+  it('close: should empty the container', function() {
+    view.open(ItemView, models);
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.numSubviews()).to.equal(2);
+    
+    view.close();
+    expect(view.$el.children()).to.have.length(0);
+    expect(view.numSubviews()).to.equal(0);
+  });
+  
+  it('close: should nullify content references', function() {
+    view.open(ItemView, models);
+    expect(view.contentView).to.equal(ItemView);
+    expect(view.contentModels).to.equal(models);
+    
+    view.close();
+    expect(view.contentView).to.be.null;
+    expect(view.contentModels).to.be.null;
+  });
+  
+  it('render: should call "renderContent" by default', function() {
+    view.renderContent = sinon.spy();
+    view.render();
+    expect(view.renderContent.calledOnce).to.be.true;
+  });
+  
+  it('renderContent: should empty the container when there is no opened content', function() {
+    expect(view.$el.children()).to.have.length(1);
+    view.renderContent();
+    expect(view.$el.children()).to.have.length(0);
+  });
+  
+  it('renderContent: should render and display a single view instance as content', function() {
+    var render = sinon.spy(luke, 'render');
+    view.contentView = luke;
+    view.renderContent();
+    
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.$el.children()[0]).to.equal(luke.$el[0]);
+    expect(render.calledOnce).to.be.true;
+  });
+  
+  it('renderContent: should empty the container when a view constructor is provided without models', function() {
+    view.contentView = ItemView;
+    view.renderContent();
+    expect(view.$el.children()).to.have.length(0);
+    expect(view.numSubviews()).to.equal(0);
+  });
+  
+  it('renderContent: should render a view constructor with a list of models into the container', function() {
+    view.contentView = ItemView;
+    view.contentModels = models;
+    view.renderContent();
+    expect(view.$el.children()).to.have.length(2);
+    expect(view.numSubviews()).to.equal(2);
+  });
+  
+  it('contentFilter: should provide an automatic-pass by default', function() {
+    expect(view.contentFilter()).to.be.true;
+  });
+  
+  it('contentFilter: should filter the list of rendered models', function() {
+    view.contentFilter = function(model) {
+      return model.get('name') === 'luke';
+    };
+    
+    view.open(ItemView, models);
+    expect(view.$el.children().eq(0).is('[data-name="luke"]')).to.be.true;
+    expect(view.$el.children()).to.have.length(1);
+    expect(view.numSubviews()).to.equal(1);
+  });
+  
+  it('contentSort: should be unimplemented by default', function() {
+    expect(view.contentSort).to.be.null;
+  });
+
+  it('contentSort: should sort the render order of the provided content models', function() {
+    // Expect original order to be "luke", "leia":
+    expect(models[0].get('name')).to.equal('luke');
+    expect(models[1].get('name')).to.equal('leia');
+    
+    // Sort alphabetically:
+    view.contentSort = function(model1, model2) {
+      return model1.get('name').localeCompare(model2.get('name'));
+    };
+    
+    view.open(ItemView, models);
+    
+    // Expect render order to be "leia", "luke":
+    expect(view.$el.children().eq(0).is('[data-name="leia"]')).to.be.true;
+    expect(view.$el.children().eq(1).is('[data-name="luke"]')).to.be.true;
+  });
   
   it('remove: should call superclass "remove" and then "empty" (in that order for best performance)', function() {
     var superCall = sinon.spy(Backbone.View.prototype, 'remove');
