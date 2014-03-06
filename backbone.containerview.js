@@ -121,12 +121,6 @@
     // Sort method used while rendering model lists:
     contentSort: null,
 
-    // Default render implementation calls render content:
-    // may be overridden...
-    render: function () {
-      this.renderContent();
-    },
-
     // Renders the current model/view content configuration:
     renderContent: function () {
       var subviews = [];

@@ -265,12 +265,6 @@ describe('Backbone.ContainerView', function() {
     expect(view.contentModels).to.be.null;
   });
   
-  it('render: should call "renderContent" by default', function() {
-    view.renderContent = sinon.spy();
-    view.render();
-    expect(view.renderContent.calledOnce).to.be.true;
-  });
-  
   it('renderContent: should empty the container when there is no opened content', function() {
     expect(view.$el.children()).to.have.length(1);
     view.renderContent();
